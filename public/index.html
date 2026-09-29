@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nova Kitsune</title>
+  <meta name="description" content="Futuristic AI companions fused with a prompt-to-image studio." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦊</text></svg>" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="logo"><span class="logo-mark">◢◣</span> NOVA<span class="slash">//</span>KITSUNE</div>
+    <div class="status" id="status"><span class="dot"></span><span id="status-text">linking…</span></div>
+  </header>
+
+  <nav class="rail" id="rail">
+    <button data-view="discover" class="active"><span>◈</span><em>Discover</em></button>
+    <button data-view="chat"><span>✦</span><em>Chat</em></button>
+    <button data-view="studio"><span>◐</span><em>Studio</em></button>
+    <button data-view="gallery"><span>▦</span><em>Gallery</em></button>
+  </nav>
+
+  <main>
+    <!-- DISCOVER -->
+    <section class="view active" id="view-discover">
+      <div class="hero glass">
+        <div>
+          <h1>Companions that <span class="grad">talk</span>.<br />Prompts that <span class="grad">render</span>.</h1>
+          <p>Forge an AI companion, sync up in chat, and let them send you holo-snaps — or take the controls yourself in the Prompt Studio.</p>
+          <div class="row">
+            <button class="btn primary" id="forge-open">＋ Forge a companion</button>
+            <button class="btn ghost" data-goto="studio">Open Studio →</button>
+          </div>
+        </div>
+        <canvas id="hero-canvas" width="360" height="360"></canvas>
+      </div>
+      <h2 class="section-title">Your companions</h2>
+      <div class="cards" id="companion-cards"></div>
+    </section>
+
+    <!-- CHAT -->
+    <section class="view" id="view-chat">
+      <div class="chat-layout">
+        <aside class="chat-list glass" id="chat-list"></aside>
+        <div class="chat-main glass">
+          <div class="chat-head" id="chat-head"></div>
+          <div class="messages" id="messages" aria-live="polite"></div>
+          <form class="composer" id="composer">
+            <button type="button" class="chip-btn" id="btn-selfie" title="Ask for a selfie">📸</button>
+            <button type="button" class="chip-btn" id="btn-imagine" title="Ask them to imagine something">🎨</button>
+            <input id="chat-input" autocomplete="off" placeholder="Transmit a message…" maxlength="2000" />
+            <button class="btn primary" type="submit">Send</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- STUDIO -->
+    <section class="view" id="view-studio">
+      <div class="studio-layout">
+        <div class="studio-controls glass">
+          <label class="lbl" for="prompt">Prompt</label>
+          <textarea id="prompt" rows="4" placeholder="a kitsune spirit hacker on a rain-soaked rooftop, neon city below"></textarea>
+          <div class="row tight">
+            <button class="btn ghost small" id="enhance">✨ Enhance with AI</button>
+            <button class="btn ghost small" id="randomize">🎲 Surprise me</button>
+          </div>
+          <div class="tag-groups" id="tag-groups"></div>
+          <label class="lbl" for="negative">Negative prompt</label>
+          <input id="negative" placeholder="blurry, low quality, watermark" />
+
+          <label class="lbl">Style</label>
+          <div class="styles" id="styles"></div>
+
+          <div class="grid2">
+            <div>
+              <label class="lbl">Aspect</label>
+              <div class="seg" id="ratios"></div>
+            </div>
+            <div>
+              <label class="lbl">Batch</label>
+              <div class="seg" id="batch"></div>
+            </div>
+          </div>
+          <div class="grid2">
+            <div>
+              <label class="lbl" for="detail">Detail <output id="detail-val">70</output></label>
+              <input type="range" id="detail" min="20" max="100" value="70" />
+            </div>
+            <div>
+              <label class="lbl" for="seed">Seed</label>
+              <div class="row tight">
+                <input id="seed" type="number" min="0" />
+                <label class="lock"><input type="checkbox" id="seed-lock" /> 🔒</label>
+              </div>
+            </div>
+          </div>
+          <button class="btn primary big" id="generate">⚡ Generate</button>
+          <p class="note">Renders locally with the Holo-Diffusion procedural engine — deterministic per prompt + seed.</p>
+        </div>
+        <div class="studio-output glass">
+          <div class="output-grid" id="output"></div>
+          <div class="empty" id="output-empty">Your renders materialize here.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="view" id="view-gallery">
+      <h2 class="section-title">Gallery <small id="gallery-count"></small></h2>
+      <div class="gallery" id="gallery"></div>
+      <div class="empty" id="gallery-empty">Nothing saved yet. Generate in the Studio or collect snaps from chat.</div>
+    </section>
+  </main>
+
+  <!-- Forge dialog -->
+  <dialog id="forge" class="glass">
+    <form method="dialog" id="forge-form">
+      <h2>Forge a companion</h2>
+      <div class="forge-grid">
+        <div>
+          <canvas id="forge-preview" width="240" height="240"></canvas>
+          <label class="lbl" for="f-hue">Aura hue</label>
+          <input type="range" id="f-hue" min="0" max="359" value="0" />
+          <label class="lbl">Form</label>
+          <div class="seg" id="f-form">
+            <button type="button" data-v="portrait" class="on">Humanoid</button>
+            <button type="button" data-v="fox">Kitsune</button>
+          </div>
+        </div>
+        <div>
+          <label class="lbl" for="f-name">Name</label>
+          <input id="f-name" required maxlength="24" placeholder="Nova" />
+          <label class="lbl" for="f-arch">Archetype</label>
+          <select id="f-arch"></select>
+          <label class="lbl">Traits <small>(pick up to 4)</small></label>
+          <div class="chips" id="f-traits"></div>
+          <label class="lbl" for="f-style">Visual style</label>
+          <select id="f-style"></select>
+          <label class="lbl" for="f-back">Backstory</label>
+          <textarea id="f-back" rows="3" maxlength="400" placeholder="Born in a data-shrine under Neo-Kyoto…"></textarea>
+        </div>
+      </div>
+      <div class="row end">
+        <button class="btn ghost" value="cancel" formnovalidate>Cancel</button>
+        <button class="btn primary" id="forge-save" value="save">Bring online</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Lightbox -->
+  <dialog id="lightbox" class="glass">
+    <canvas id="lb-canvas"></canvas>
+    <div class="lb-meta" id="lb-meta"></div>
+    <div class="row end">
+      <button class="btn ghost" id="lb-remix">Remix</button>
+      <button class="btn ghost" id="lb-download">Download</button>
+      <button class="btn ghost danger" id="lb-delete">Delete</button>
+      <button class="btn primary" id="lb-close">Close</button>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
